@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlexTram — Built to Move</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #09090b;
+    --bg-deep: #050506;
+    --bg-elevated: #0f0f12;
+    --bg-card: #141418;
+    --border: #1e1e24;
+    --border-accent: #2a2a33;
+    --text-primary: #dcdce0;
+    --text-secondary: #8e8e96;
+    --text-muted: #55555e;
+    --text-dim: #3a3a42;
+    --accent: #b8f000;
+    --accent-dim: rgba(184, 240, 0, 0.06);
+    --accent-mid: rgba(184, 240, 0, 0.12);
+    --accent-glow: rgba(184, 240, 0, 0.03);
+    --white: #f0f0f2;
+    --blue: #5b9cf5;
+    --blue-dim: rgba(91, 156, 245, 0.08);
+    --orange: #f0a050;
+    --orange-dim: rgba(240, 160, 80, 0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    font-weight: 400;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ============================================================
+     GATE PAGE — SEQUENCED NARRATIVE
+     ============================================================ */
+  .gate {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-deep);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .gate.exiting {
+    opacity: 0;
+    transform: scale(1.02);
+    pointer-events: none;
+  }
+
+  .gate.hidden {
+    display: none;
+  }
+
+  .gate-conf {
+    position: absolute;
+    top: 1.5rem;
+    right: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: gateFade 0.6s ease forwards 0.2s;
+  }
+
+  .gate-brand {
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0;
+    animation: gateFade 0.6s ease forwards 0.2s;
+  }
+
+  .gate-stage {
+    text-align: center;
+    width: 100%;
+    max-width: 100%;
+    padding: 0 4rem;
+    position: relative;
+    min-height: 160px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .gate-frame {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0 2rem;
+  }
+
+  .gate-frame.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .gate-frame.exiting {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  .gate-claim {
+    font-size: clamp(1.15rem, 2.5vw, 1.5rem);
+    font-weight: 500;
+    line-height: 1.5;
+    margin-bottom: 0;
+  }
+
+  .gate-claim--hook {
+    color: var(--white);
+  }
+
+  .gate-claim--problem {
+    color: var(--text-secondary);
+  }
+
+  .gate-claim--solve {
+    color: var(--accent);
+  }
+
+  .gate-evidence {
+    font-size: clamp(0.95rem, 2vw, 1.12rem);
+    font-weight: 400;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    max-width: 860px;
+    margin-top: 0;
+  }
+
+  .gate-cta {
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    pointer-events: none;
+    margin-top: 3rem;
+  }
+
+  .gate-cta.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .gate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bg-deep);
+    background: var(--accent);
+    border: none;
+    padding: 0.9rem 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .gate-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s ease;
+  }
+
+  .gate-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 24px rgba(184, 240, 0, 0.2);
+  }
+
+  .gate-btn:hover::before {
+    left: 100%;
+  }
+
+  .gate-btn .arrow {
+    transition: transform 0.3s ease;
+  }
+
+  .gate-btn:hover .arrow {
+    transform: translateX(3px);
+  }
+
+  @keyframes gateFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* ============================================================
+     MAIN CONTENT (hidden until gate is dismissed)
+     ============================================================ */
+  .main-content {
+    opacity: 0;
+    transition: opacity 0.8s ease 0.3s;
+  }
+
+  .main-content.visible {
+    opacity: 1;
+  }
+
+  /* === NAV BAR === */
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 1.25rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(9, 9, 11, 0.85);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .topbar.visible {
+    opacity: 1;
+  }
+
+  .topbar-brand {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.18em;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+
+  .topbar-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+  }
+
+  /* === HERO === */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8rem 2rem 6rem;
+    position: relative;
+  }
+
+  .hero-orientation {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 2rem;
+    margin-bottom: 4rem;
+    padding: 1.5rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.2s;
+    animation-play-state: paused;
+  }
+
+  .main-content.visible .hero-orientation {
+    animation-play-state: running;
+  }
+
+  .hero-orientation .divider-v {
+    width: 1px;
+    background: var(--border-accent);
+  }
+
+  .orient-block .orient-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .orient-block .orient-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .orient-block .orient-text strong {
+    color: var(--white);
+    font-weight: 500;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.18;
+    color: var(--white);
+    max-width: 680px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.4s;
+    animation-play-state: paused;
+  }
+
+  .main-content.visible .hero h1 {
+    animation-play-state: running;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    margin-top: 1.5rem;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    max-width: 540px;
+    line-height: 1.85;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 0.6s;
+    animation-play-state: paused;
+  }
+
+  .main-content.visible .hero-sub {
+    animation-play-state: running;
+  }
+
+  .scroll-cue {
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    animation: fadeUp 0.7s ease forwards 1s;
+    animation-play-state: paused;
+  }
+
+  .main-content.visible .scroll-cue {
+    animation-play-state: running;
+  }
+
+  .scroll-cue span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .scroll-cue .line {
+    width: 1px;
+    height: 32px;
+    background: linear-gradient(to bottom, var(--border-accent), transparent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* === SECTIONS === */
+  section {
+    padding: 5rem 0;
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .section-num::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  h2 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--white);
+    margin-bottom: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 0.6rem;
+  }
+
+  p {
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+    font-size: 0.98rem;
+  }
+
+  p:last-child { margin-bottom: 0; }
+
+  /* === PULL QUOTE === */
+  .pull {
+    border-left: 2px solid var(--accent);
+    padding: 1.25rem 1.75rem;
+    margin: 2rem 0;
+    background: var(--accent-dim);
+  }
+
+  .pull p {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 400;
+    margin: 0;
+    line-height: 1.75;
+  }
+
+  /* === STAT ANCHOR === */
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    margin: 2.5rem 0;
+    background: var(--border);
+  }
+
+  .stat-row--three {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .stat-cell {
+    background: var(--bg);
+    padding: 1.5rem;
+  }
+
+  .stat-cell .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .stat-cell .desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .stat-cell .src {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* === THREE PILLARS === */
+  .pillar {
+    padding: 2rem;
+    margin-bottom: 1px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pillar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+  }
+
+  .pillar--ops { background: var(--accent-dim); }
+  .pillar--ops::before { background: var(--accent); }
+  .pillar--ops .pillar-num { color: var(--accent); }
+
+  .pillar--safety { background: var(--blue-dim); }
+  .pillar--safety::before { background: var(--blue); }
+  .pillar--safety .pillar-num { color: var(--blue); }
+
+  .pillar--content { background: var(--orange-dim); }
+  .pillar--content::before { background: var(--orange); }
+  .pillar--content .pillar-num { color: var(--orange); }
+
+  .pillar-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .pillar h3 { font-size: 1.15rem; margin-bottom: 0.75rem; }
+  .pillar p { font-size: 0.92rem; line-height: 1.75; }
+
+  /* === CALLOUT BLOCK === */
+  .callout {
+    margin-top: 2.5rem;
+    border: 1px solid var(--accent);
+    background: linear-gradient(135deg, rgba(184, 240, 0, 0.04), rgba(184, 240, 0, 0.01));
+    padding: 2rem 2.25rem;
+    position: relative;
+  }
+
+  .callout::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(184, 240, 0, 0.15);
+  }
+
+  .callout-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .callout p {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+
+  .callout p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* === ARCHITECTURE VISUAL === */
+  .arch {
+    margin-top: 3rem;
+  }
+
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr 48px 1fr;
+    gap: 0;
+    margin-top: 2rem;
+  }
+
+  .arch-col {
+    padding: 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+
+  .arch-col--atoms {
+    border-right: none;
+  }
+
+  .arch-col--electrons {
+    border-left: none;
+  }
+
+  .arch-connector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .arch-connector-line {
+    width: 1px;
+    height: 100%;
+    background: var(--border-accent);
+    position: absolute;
+  }
+
+  .arch-connector-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 0 16px rgba(184, 240, 0, 0.1);
+  }
+
+  .arch-connector-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .arch-col-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .arch-col--atoms .arch-col-label { color: var(--accent); }
+  .arch-col--electrons .arch-col-label { color: var(--blue); }
+
+  .arch-col-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 0.35rem;
+  }
+
+  .arch-col-sub {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-bottom: 1.25rem;
+    line-height: 1.5;
+  }
+
+  .arch-item {
+    padding: 0.6rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .arch-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .arch-item-name {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.15rem;
+  }
+
+  .arch-item-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .arch-output {
+    margin-top: 1.5rem;
+    padding: 1.5rem 2rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
+  }
+
+  .arch-output-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .arch-output-items {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .arch-output-item {
+    background: var(--bg-card);
+    padding: 0.75rem;
+    text-align: center;
+  }
+
+  .arch-output-item span {
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+
+  .arch-output-item--ops span { color: var(--accent); }
+  .arch-output-item--safety span { color: var(--blue); }
+  .arch-output-item--content span { color: var(--orange); }
+
+  @media (max-width: 768px) {
+    .arch-grid {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .arch-col--atoms {
+      border-right: 1px solid var(--border);
+      border-bottom: none;
+    }
+
+    .arch-col--electrons {
+      border-left: 1px solid var(--border);
+      border-top: none;
+    }
+
+    .arch-connector {
+      height: 48px;
+    }
+
+    .arch-connector-line {
+      width: 100%;
+      height: 1px;
+    }
+
+    .arch-output-items {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* === FLYWHEEL === */
+  .flywheel-wrap {
+    display: flex;
+    align-items: center;
+    gap: 3.5rem;
+    margin: 3rem 0;
+  }
+
+  .flywheel-visual {
+    flex: 0 0 240px;
+    height: 240px;
+    position: relative;
+  }
+
+  .fw-ring {
+    width: 100%;
+    height: 100%;
+    border: 1.5px solid var(--border-accent);
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .fw-ring::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    border-top-color: var(--accent);
+    animation: slowSpin 10s linear infinite;
+  }
+
+  .fw-label {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    background: var(--bg);
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--border-accent);
+    white-space: nowrap;
+  }
+
+  .fw-label--t { top: -10px; left: 50%; transform: translateX(-50%); }
+  .fw-label--r { right: -20px; top: 50%; transform: translateY(-50%); }
+  .fw-label--b { bottom: -10px; left: 50%; transform: translateX(-50%); }
+  .fw-label--l { left: -20px; top: 50%; transform: translateY(-50%); }
+
+  .flywheel-text { flex: 1; }
+
+  /* === LAYER STACK === */
+  .layer {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    gap: 1.25rem;
+    padding: 1.75rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .layer:last-child { border-bottom: none; }
+
+  .layer-idx {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--accent);
+    padding-top: 0.15rem;
+  }
+
+  .layer-body h3 { font-size: 1rem; margin-bottom: 0.4rem; }
+  .layer-body p { font-size: 0.9rem; }
+
+  .layer-tags {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--border-accent);
+    color: var(--text-muted);
+  }
+
+  .tag--g { border-color: rgba(184, 240, 0, 0.2); color: var(--accent); }
+  .tag--b { border-color: rgba(91, 156, 245, 0.2); color: var(--blue); }
+  .tag--o { border-color: rgba(240, 160, 80, 0.2); color: var(--orange); }
+
+  /* === POSITION === */
+  .position-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin: 2.5rem 0;
+  }
+
+  .pos-card {
+    background: var(--bg-card);
+    padding: 1.75rem 2rem;
+  }
+
+  .pos-card h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  .pos-card p { font-size: 0.92rem; }
+
+  .pos-card--offense h3 { color: var(--accent); }
+  .pos-card--defense h3 { color: var(--blue); }
+  .pos-card--rules h3 { color: var(--orange); }
+
+  /* === CLOSE === */
+  .close-section { padding: 6rem 0 4rem; }
+
+  .close-section h2 {
+    font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+    max-width: 600px;
+    margin-bottom: 1.5rem;
+  }
+
+  .close-section p { max-width: 580px; }
+
+  .close-line {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .close-line p {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 1.02rem;
+  }
+
+  /* === FOOTER === */
+  footer {
+    padding: 2.5rem 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-brand {
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    color: var(--white);
+    text-transform: uppercase;
+  }
+
+  .footer-tagline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* === ANIMATIONS === */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slowSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  /* === RESPONSIVE === */
+  @media (max-width: 768px) {
+    .hero-orientation {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    .hero-orientation .divider-v { display: none; }
+
+    .flywheel-wrap {
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .flywheel-visual {
+      flex: none;
+      width: 220px;
+      height: 220px;
+      margin: 0 auto;
+    }
+
+    .stat-row, .stat-row--three {
+      grid-template-columns: 1fr;
+    }
+
+    .layer {
+      grid-template-columns: 32px 1fr;
+      gap: 1rem;
+    }
+
+    .pos-card { padding: 1.25rem; }
+
+    .footer-inner {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .gate-line {
+      font-size: 1.1rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- ============================================================
+       GATE PAGE
+       ============================================================ -->
+  <div class="gate" id="gate">
+    <div class="gate-brand">FlexTram</div>
+    <div class="gate-conf">Confidential</div>
+
+    <div class="gate-stage" id="gateStage">
+
+      <!-- Frame 1: The opportunity claim -->
+      <div class="gate-frame" id="frame1">
+        <div class="gate-claim gate-claim--hook">The opportunity exists.</div>
+      </div>
+
+      <!-- Frame 2: The opportunity evidence -->
+      <div class="gate-frame" id="frame2">
+        <div class="gate-evidence">Parking sees every attendee. No one is treating it like the data asset it is.</div>
+      </div>
+
+      <!-- Frame 3: The problem claim -->
+      <div class="gate-frame" id="frame3">
+        <div class="gate-claim gate-claim--problem">Tooling is the problem.</div>
+      </div>
+
+      <!-- Frame 4: The problem evidence -->
+      <div class="gate-frame" id="frame4">
+        <div class="gate-evidence">$165B in retail media exists because someone captured point-of-sale data. No one's done it for live events.</div>
+      </div>
+
+      <!-- Frame 5: The solve claim -->
+      <div class="gate-frame" id="frame5">
+        <div class="gate-claim gate-claim--solve">Here's how we solve it.</div>
+      </div>
+
+    </div>
+
+    <div class="gate-cta" id="gateCta">
+      <button class="gate-btn" id="gateBtn">
+        See the framework
+        <span class="arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <div class="main-content" id="mainContent">
+
+    <!-- TOPBAR -->
+    <div class="topbar" id="topbar">
+      <div class="topbar-brand">FlexTram</div>
+      <div class="topbar-tag">Strategic Overview — Confidential</div>
+    </div>
+
+    <!-- HERO -->
+    <header class="hero">
+      <div class="container">
+
+        <!-- ORIENTATION -->
+        <div class="hero-orientation">
+          <div class="orient-block">
+            <div class="orient-label">Where we are</div>
+            <div class="orient-text"><strong>FlexTram is operational.</strong> Purpose-built vehicles. Proven SOPs. Full-service event transport deployed at scale. We took the hard detour — building proprietary hardware and mastering ground operations — because credibility in this industry is earned on the pavement, not in a pitch deck.</div>
+          </div>
+          <div class="divider-v"></div>
+          <div class="orient-block">
+            <div class="orient-label">Where this is going</div>
+            <div class="orient-text"><strong>An event media network</strong> — built on physical infrastructure, powered by first-party data, and positioned at the highest-intent consumer touchpoint in live events. What follows is how the pieces fit together.</div>
+          </div>
+        </div>
+
+        <h1>Parking infrastructure is the most <em>underleveraged asset</em> in live events.</h1>
+        <p class="hero-sub">First-party data worth millions leaves every event through the parking lot. No one's capturing it.</p>
+
+        <div class="scroll-cue">
+          <span>The thesis</span>
+          <div class="line"></div>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- SECTION 01: THE NEXUS -->
+    <section>
+      <div class="container">
+        <div class="section-num reveal">01 — The Nexus</div>
+        <h2 class="reveal">Parking is the only part of the operation that sees every single attendee. First and last.</h2>
+        <p class="reveal">The live event attendee has planned their week — maybe their year — around this moment. They've purchased tickets, booked travel, coordinated schedules. They are not browsing. They are committed. They are here to spend.</p>
+        <p class="reveal">This person represents the economic engine behind a $2.3 trillion global events industry. And the very first physical interaction they have — before the ticket scan, before the concession stand, before the merch line — is with a parking operation.</p>
+        <p class="reveal">The last one too.</p>
+
+        <div class="pull reveal">
+          <p>Every other touchpoint is downstream. Parking is the origin point. It comes pre-loaded with demographic data, predictable behavior patterns, and dwell time that no one in this industry is capturing at scale.</p>
+        </div>
+
+        <p class="reveal">This isn't about parking revenue. This is about what becomes possible when you treat the physical positioning of these assets as what they actually are: the foundation of a data system.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 02: THE GAP -->
+    <section>
+      <div class="container">
+        <div class="section-num reveal">02 — The Gap</div>
+        <h2 class="reveal">The market prices parking as a cost center. It's a data grid waiting to be activated.</h2>
+        <p class="reveal">Today, parking operations run on a simple model: space for dollars. The infrastructure required to make that transaction work — the lots, the access points, the staffing, the routing — is treated as overhead. A cost of doing business.</p>
+        <p class="reveal">But that infrastructure is physically positioned at the most strategic points around every major venue in the country. It surrounds the event. It controls ingress and egress. It touches every single attendee.</p>
+
+        <div class="stat-row stat-row--three reveal">
+          <div class="stat-cell">
+            <div class="num">$165B</div>
+            <div class="desc">Global retail media spend — built entirely on first-party data at point of transaction.</div>
+            <div class="src">eMarketer, 2025</div>
+          </div>
+          <div class="stat-cell">
+            <div class="num">61%</div>
+            <div class="desc">Of consumer entertainment spend still happens in person, at live events.</div>
+            <div class="src">PwC Global E&M Outlook, 2025</div>
+          </div>
+          <div class="stat-cell">
+            <div class="num">$0</div>
+            <div class="desc">Media network revenue generated from event parking infrastructure today.</div>
+            <div class="src">Industry reality</div>
+          </div>
+        </div>
+
+        <p class="reveal">The gap isn't awareness. It's tooling. The operational system to digitally activate parking infrastructure hasn't existed — until now.</p>
+        <p class="reveal">Retail media built a $165 billion channel because retailers realized they were sitting on first-party data at the point of transaction. Meanwhile, advertising spend is growing 3x faster than consumer spend across the entertainment industry — and 61% of that consumer spend is still happening in person, at live events. The audience is there. The ad dollars are moving. But there's no media network built for the physical event.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 03: THREE PILLARS -->
+    <section>
+      <div class="container">
+        <div class="section-num reveal">03 — What Gets Unlocked</div>
+        <h2 class="reveal">Three value systems, one infrastructure.</h2>
+        <p class="reveal">When parking lots are digitally activated — connected, instrumented, and operationally networked — the value splits into three distinct layers. Each one stands alone. Together, they make the infrastructure irreplaceable.</p>
+
+        <div style="margin-top: 2rem;">
+          <div class="pillar pillar--ops reveal">
+            <div class="pillar-num">Pillar 01</div>
+            <h3>Operational Intelligence</h3>
+            <p>Real-time visibility into every dimension of the parking operation. Throughput, density, staffing efficiency, routing optimization, predictive load balancing. This is the language operators already speak — delivered with a precision that doesn't exist today. It justifies the system on day one, before any other value layer is activated.</p>
+          </div>
+
+          <div class="pillar pillar--safety reveal">
+            <div class="pillar-num">Pillar 02</div>
+            <h3>Public Safety Data</h3>
+            <p>Crowd density monitoring, emergency egress modeling, real-time situational awareness across every connected lot, route, and access point. This elevates the system from an operational tool to critical safety infrastructure — relevant to the venue, to local government, to insurance, to emergency services. Once it's woven into safety protocols, it doesn't come out.</p>
+          </div>
+
+          <div class="pillar pillar--content reveal">
+            <div class="pillar-num">Pillar 03</div>
+            <h3>Programmable Content</h3>
+            <p>A media layer built on owned surfaces, positioned at high-traffic nodes, fed by first-party behavioral data. This is net-new revenue. Not a bigger slice of parking income — an entirely new line of business generated from the same physical footprint. Dynamic, targetable, measurable, and built on the most captive audience in live events.</p>
+          </div>
+        </div>
+
+        <div class="pull reveal" style="margin-top: 2rem;">
+          <p>Operational intelligence makes the system valuable. Public safety data makes it permanent. Programmable content makes it a profit center that scales independently of parking revenue.</p>
+        </div>
+
+        <div class="callout reveal">
+          <div class="callout-label">One system. Three outputs.</div>
+          <p>The tooling is the same. The sensors, the network, the data layer that powers a media network are the same systems that generate operational intelligence and safety data. There is no separate build for each pillar — one infrastructure, three value streams.</p>
+          <p>These tools aren't in development. They're built, tested, and deployed. The vehicles are operational. The data systems are live. The operational playbooks are written. What scales isn't a concept — it's an existing system applied to a larger footprint.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 04: WHAT'S BUILT -->
+    <section>
+      <div class="container">
+        <div class="section-num reveal">04 — What's Built</div>
+        <h2 class="reveal">The atoms and the electrons.</h2>
+        <p class="reveal">The system has two layers. The physical assets that establish presence on the ground — and the intelligence platform that runs through them. Two companies. One integrated system.</p>
+
+        <div class="arch reveal">
+          <div class="arch-grid">
+
+            <div class="arch-col arch-col--atoms">
+              <div class="arch-col-label">Atoms — FlexTram</div>
+              <div class="arch-col-title">The Physical Network</div>
+              <div class="arch-col-sub">Proprietary hardware that earns the right to be on-site.</div>
+
+              <div class="arch-item">
+                <div class="arch-item-name">Transport Fleet</div>
+                <div class="arch-item-desc">Purpose-built vehicles. Proprietary design, full operational SOPs.</div>
+              </div>
+              <div class="arch-item">
+                <div class="arch-item-name">Route Infrastructure</div>
+                <div class="arch-item-desc">Defined paths between lots, access points, and venue gates.</div>
+              </div>
+              <div class="arch-item">
+                <div class="arch-item-name">Operational Footprint</div>
+                <div class="arch-item-desc">Physical presence at every critical node around the venue.</div>
+              </div>
+            </div>
+
+            <div class="arch-connector">
+              <div class="arch-connector-line"></div>
+              <div class="arch-connector-icon">
+                <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M4 7h6M7 4v6" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="arch-col arch-col--electrons">
+              <div class="arch-col-label">Electrons — Origin SCT</div>
+              <div class="arch-col-title">The Intelligence Platform</div>
+              <div class="arch-col-sub">Hardware and software that activates the physical network.</div>
+
+              <div class="arch-item">
+                <div class="arch-item-name">Data Capture Devices</div>
+                <div class="arch-item-desc">Sensors, beacons, and proximity hardware deployed across the footprint.</div>
+              </div>
+              <div class="arch-item">
+                <div class="arch-item-name">Content Surfaces</div>
+                <div class="arch-item-desc">Dynamic screens positioned at high-volume nodes. Project and collect.</div>
+              </div>
+              <div class="arch-item">
+                <div class="arch-item-name">Aggregation Engine</div>
+                <div class="arch-item-desc">Unified data layer. Ingestion, enrichment, segmentation.</div>
+              </div>
+              <div class="arch-item">
+                <div class="arch-item-name">Operational Dashboard</div>
+                <div class="arch-item-desc">Real-time command and visibility across the entire system.</div>
+              </div>
+              <div class="arch-item">
+                <div class="arch-item-name">Content Delivery Platform</div>
+                <div class="arch-item-desc">Programmable media layer. Targeting, scheduling, attribution.</div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="arch-output">
+            <div class="arch-output-label">Combined system output</div>
+            <div class="arch-output-items">
+              <div class="arch-output-item arch-output-item--ops"><span>Operational Intelligence</span></div>
+              <div class="arch-output-item arch-output-item--safety"><span>Public Safety Data</span></div>
+              <div class="arch-output-item arch-output-item--content"><span>Programmable Content</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout reveal" style="margin-top: 2.5rem;">
+          <div class="callout-label">This has a name</div>
+          <p style="font-size: 1.1rem; font-weight: 500; color: var(--white); margin-bottom: 0.75rem;">FlexGrid</p>
+          <p>FlexTram's physical network, activated by Origin SCT's intelligence platform, delivered as a single integrated system. One contract. One deployment. One operational partner.</p>
+          <p>FlexGrid is what the venue buys. Underneath it, two purpose-built companies — one that earns the right to be on-site, one that activates every surface once it's there. The customer doesn't manage the seam between them. They deploy FlexGrid, and the system handles the rest.</p>
+          <p style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid rgba(184, 240, 0, 0.12);">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent);">What FlexGrid includes</span>
+          </p>
+          <p style="font-size: 0.92rem; line-height: 1.85; color: var(--text-secondary);">Managed mobility on purpose-built vehicles. Ops planning and route design before a single vehicle arrives. Networked vehicles feeding real-time site intelligence. Intelligent signage at every stop — wayfinding, arrival data, sponsor content. Commerce extensions and audience engagement powered by Origin SCT's field hardware. And a unified command view that surfaces everything to the people who need it.</p>
+          <p style="font-size: 0.92rem; color: var(--text-primary); font-weight: 400;">The atoms and the electrons, deployed as one system. Everything above this section describes what it produces. Everything below describes why it's defensible.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 05: DIGITAL FENCE -->
+    <section>
+      <div class="container">
+        <div class="section-num reveal">05 — The Digital Fence</div>
+        <h2 class="reveal">Activated lots aren't just smarter. They're defensible.</h2>
+        <p class="reveal">A digitally activated parking lot is a fundamentally different asset than the one that exists today. It isn't just collecting revenue from parking — it's generating intelligence, contributing to safety infrastructure, and producing media inventory. It has a digital perimeter.</p>
+        <p class="reveal">This matters now, and it matters even more in the near future.</p>
+        <p class="reveal">As autonomous vehicles reshape the parking landscape, operators who control the data layer — who can identify, route, and interact with self-driving systems entering their footprint — will own the interface between autonomy and venue infrastructure. Operators who don't will find themselves managing empty concrete.</p>
+        <p class="reveal">As venues demand more integrated operational partners, the operator running a digitally networked system across every lot, every route, and every access point becomes structurally irreplaceable. The switching cost isn't a contract clause — it's the operational complexity of ripping out a system that touches safety, logistics, and revenue simultaneously.</p>
+
+        <div class="pull reveal">
+          <p>The digital fence doesn't protect a parking lot. It protects the entire relationship — with the venue, with the data, and with the future.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 06: HOW IT GETS BUILT -->
+    <section>
+      <div class="container">
+        <div class="section-num reveal">06 — How It Gets Built</div>
+        <h2 class="reveal">Each asset funds the next. Each layer deepens the grid. Nothing is speculative.</h2>
+
+        <div class="flywheel-wrap reveal">
+          <div class="flywheel-visual">
+            <div class="fw-ring">
+              <div class="fw-label fw-label--t">Deploy</div>
+              <div class="fw-label fw-label--r">Monetize</div>
+              <div class="fw-label fw-label--b">Expand</div>
+              <div class="fw-label fw-label--l">Presale</div>
+            </div>
+          </div>
+          <div class="flywheel-text">
+            <p>A new operational asset is deployed. It generates revenue immediately. That operational footprint simultaneously expands the data grid. The expanded grid creates the business case to presale the next asset.</p>
+            <p>Every layer is paid for before it's built. Every layer compounds the value of everything beneath it. Everything starts small, scales as necessary, and no layer depends on the scale of the one before it.</p>
+          </div>
+        </div>
+
+        <h3 class="reveal" style="margin-top: 2.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted);">Capability Layers — Deployed in Sequence</h3>
+
+        <div class="layer reveal">
+          <div class="layer-idx">01</div>
+          <div class="layer-body">
+            <h3>Managed Mobility</h3>
+            <p>Purpose-built transport connecting parking infrastructure to venue entry points. Solves the most visible pain point — moving people — while establishing the physical network everything else runs on. Revenue from day one.</p>
+            <div class="layer-tags">
+              <span class="tag tag--g">Ops Revenue</span>
+              <span class="tag tag--g">Route Data</span>
+              <span class="tag tag--b">Throughput Mapping</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer reveal">
+          <div class="layer-idx">02</div>
+          <div class="layer-body">
+            <h3>Dynamic Audience Engagement</h3>
+            <p>Programmable surfaces at high-volume nodes. Dual purpose: real-time wayfinding that improves fan experience, and content delivery that creates new engagement channels. Each surface projects and collects.</p>
+            <div class="layer-tags">
+              <span class="tag tag--g">Fan Experience</span>
+              <span class="tag tag--o">Impressions</span>
+              <span class="tag tag--b">Behavioral Data</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer reveal">
+          <div class="layer-idx">03</div>
+          <div class="layer-body">
+            <h3>Proximity Intelligence</h3>
+            <p>Granular zone-level data across every lot, route, and surface. Real-time movement patterns, dwell analysis, density mapping. Transforms a static footprint into a living system.</p>
+            <div class="layer-tags">
+              <span class="tag tag--b">Heat Mapping</span>
+              <span class="tag tag--b">Movement Intel</span>
+              <span class="tag tag--g">Crowd Mgmt</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer reveal">
+          <div class="layer-idx">04</div>
+          <div class="layer-body">
+            <h3>Aggregation & Enrichment</h3>
+            <p>The synthesis layer. Combines operational data, engagement signals, and behavioral patterns into unified, enriched intelligence. Where raw output becomes strategic asset.</p>
+            <div class="layer-tags">
+              <span class="tag tag--b">Unified Profiles</span>
+              <span class="tag tag--b">Segmentation</span>
+              <span class="tag tag--o">Targeting</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer reveal">
+          <div class="layer-idx">05</div>
+          <div class="layer-body">
+            <h3>Operational Visibility</h3>
+            <p>Real-time command layer. Not a dashboard for dashboards' sake — a decision-making tool built on live data from every layer beneath it. Surfaces the full system to operators, venues, and stakeholders.</p>
+            <div class="layer-tags">
+              <span class="tag tag--g">Real-Time Ops</span>
+              <span class="tag tag--b">Analytics</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer reveal">
+          <div class="layer-idx">06</div>
+          <div class="layer-body">
+            <h3>Event Media Network</h3>
+            <p>The endgame. A programmable media network built on owned infrastructure, first-party data, and the highest-intent audience in commerce. Not advertising bolted onto parking — a media channel that emerged organically from operational infrastructure. The same structural play as retail media, but with an audience that has already committed their time, their money, and their attention.</p>
+            <div class="layer-tags">
+              <span class="tag tag--o">Media Revenue</span>
+              <span class="tag tag--o">First-Party Targeting</span>
+              <span class="tag tag--o">Attribution</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 07: COMPETITIVE POSITION -->
+    <section>
+      <div class="container">
+        <div class="section-num reveal">07 — The Position</div>
+        <h2 class="reveal">Three games, played simultaneously.</h2>
+
+        <div class="position-grid reveal">
+          <div class="pos-card pos-card--offense">
+            <h3>Offense</h3>
+            <p>Every deployed asset creates immediate, new revenue with the client. Nothing is speculative. Nothing requires the next layer to justify the current one. Each piece earns its place from day one.</p>
+          </div>
+          <div class="pos-card pos-card--defense">
+            <h3>Defense</h3>
+            <p>Each asset claims physical and operational infrastructure. Collectively, they represent complete operational coverage woven into safety protocols, logistics systems, and revenue streams. The switching cost isn't contractual — it's structural.</p>
+          </div>
+          <div class="pos-card pos-card--rules">
+            <h3>Setting the Rules</h3>
+            <p>Once the stack is in place, the competitive landscape fundamentally changes. Replicating the system isn't just a build problem — it requires selling, deploying, operating, and earning trust with venue partners who are already running on an integrated platform. The bridge burns behind you.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 08: THE CLOSE -->
+    <section class="close-section">
+      <div class="container">
+        <div class="section-num reveal">08 — The Opportunity</div>
+        <h2 class="reveal">The infrastructure already exists. The system to activate it is built. The variable is who moves first.</h2>
+        <p class="reveal">The largest parking operators in the country already control the physical footprint around every major venue. The lots. The relationships. The scale. What they don't have — yet — is the operational layer that transforms that footprint into a first-party data grid and, ultimately, a media network worth multiples of the underlying parking revenue.</p>
+        <p class="reveal">That operational system exists today. It's proven. It's deployed. And it was purpose-built to plug into exactly this kind of infrastructure.</p>
+
+        <div class="close-line reveal">
+          <p>The question isn't whether this gets built. It's who builds it first — and how quickly the window closes once they do.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div class="footer-inner">
+          <div class="footer-brand">FlexTram</div>
+          <div class="footer-tagline">Built to Move</div>
+        </div>
+      </div>
+    </footer>
+
+  </div><!-- /main-content -->
+
+  <script>
+    // === GATE SEQUENCE ===
+    const gate = document.getElementById('gate');
+    const gateBtn = document.getElementById('gateBtn');
+    const gateCta = document.getElementById('gateCta');
+    const mainContent = document.getElementById('mainContent');
+    const topbar = document.getElementById('topbar');
+
+    const frames = [
+      document.getElementById('frame1'),
+      document.getElementById('frame2'),
+      document.getElementById('frame3'),
+      document.getElementById('frame4'),
+      document.getElementById('frame5')
+    ];
+
+    // Timing: [show delay from start, hold duration]
+    // Claims get shorter holds, evidence gets longer for reading
+    const timing = [
+      { show: 800,  hold: 1800 },   // "The opportunity exists."
+      { show: 0,    hold: 5000 },   // Evidence: parking is the only part...
+      { show: 0,    hold: 1800 },   // "Tooling is the problem."
+      { show: 0,    hold: 3500 },   // Evidence: same structural play...
+      { show: 0,    hold: 0 }       // "Here's how we solve it." — stays
+    ];
+
+    function runSequence() {
+      let elapsed = timing[0].show;
+
+      frames.forEach((frame, i) => {
+        const showAt = elapsed;
+        const holdFor = timing[i].hold;
+        const isLast = i === frames.length - 1;
+
+        // Show frame
+        setTimeout(() => {
+          frame.classList.add('active');
+        }, showAt);
+
+        if (!isLast) {
+          // Exit frame
+          setTimeout(() => {
+            frame.classList.remove('active');
+            frame.classList.add('exiting');
+          }, showAt + holdFor);
+
+          // Queue next frame right after exit
+          elapsed = showAt + holdFor + 600;
+        } else {
+          // Last frame — show button after a beat
+          setTimeout(() => {
+            gateCta.classList.add('active');
+          }, showAt + 1000);
+        }
+      });
+    }
+
+    // Start the sequence
+    runSequence();
+
+    // Gate button click
+    gateBtn.addEventListener('click', () => {
+      gate.classList.add('exiting');
+
+      setTimeout(() => {
+        gate.classList.add('hidden');
+        mainContent.classList.add('visible');
+        topbar.classList.add('visible');
+        window.scrollTo(0, 0);
+      }, 600);
+    });
+
+    // === SCROLL REVEAL ===
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+    reveals.forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>
